@@ -126,8 +126,9 @@ contract SC1Token is ERC20Interface, Owned, SafeMath {
 
 
     // ------------------------------------------------------------------------
-    // Total supply
-    // ------------------------------------------------------------------------
+    // Total supply: Get the total token supply
+    // ------------------------------------------------------------------------ 
+
     function totalSupply() public constant returns (uint) {
         return _totalSupply  - balances[address(0)];
     }
