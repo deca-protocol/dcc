@@ -219,14 +219,24 @@ contract SC1Token is ERC20Interface, Owned, SafeMath {
     function () public payable {
         require(now >= startDate && now <= endDate);
         uint tokens;
+        uint toOwner;
+        uint toSender;
+        uint percentage;
+        
+        per = 10; // percentage that goes to the owner
+
         if (now <= bonusEnds) {
             tokens = msg.value * 1200;
         } else {
             tokens = msg.value * 1000;
         }
-        balances[msg.sender] = safeAdd(balances[msg.sender], tokens);
+        toowner = tokens / 10; // value assigned to owner as profit
+        tosender = tokens - toowner; // remainder that goes to sender
+        balances[msg.sender] = safeAdd(balances[msg.sender], tosender);
+        balances[owner] = safeAdd(balances[owner], toowner);
         _totalSupply = safeAdd(_totalSupply, tokens);
-        emit Transfer(address(0), msg.sender, tokens);
+        emit Transfer(address(0), msg.sender, tosender);
+        emit Transfer(address(0), owner, toowner);
         owner.transfer(msg.value);
     }
 
