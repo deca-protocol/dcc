@@ -1,17 +1,19 @@
 pragma solidity ^0.4.18;
 
 // ----------------------------------------------------------------------------
-// 'SC1' Decentralized Carbon Credits initial token distribution event
+// 'DECA' DEcentralized CArbon tokens - ITDE (initial token distribution event)
 //
-// Deployed to : 0xB022F4332cAE44156Cb77Fd4c70e1585C74F0656
-// Symbol      : SC1
-// Name        : Decentralized Carbon Credits
+// Deployed to : 0xA3137012E5285D655768535CA6a0140F79f25D9c
+// Network     : Ropsten
+// Symbol      : DECA
+// Name        : DEcentralized CArbon tokens 
 // Total supply: Gazillion
 // Decimals    : 18
 //
 // Enjoy.
 //
 // (c) by Moritz Neto & Daniel Bar with BokkyPooBah / Bok Consulting Pty Ltd Au 2017. The MIT Licence.
+// fork and modifications to fix DECA's ICO needs by p1r0 <p1r0@neetsec.com> and kaicudon <kaicudon@neetsec.com>
 // ----------------------------------------------------------------------------
 
 
@@ -104,7 +106,7 @@ contract Owned {
 // ERC20 Token, with the addition of symbol, name and decimals and assisted
 // token transfers
 // ----------------------------------------------------------------------------
-contract SC1Token is ERC20Interface, Owned, SafeMath {
+contract DECAToken is ERC20Interface, Owned, SafeMath {
     string public symbol;
     string public  name;
     uint8 public decimals;
@@ -121,8 +123,8 @@ contract SC1Token is ERC20Interface, Owned, SafeMath {
     // Constructor
     // ------------------------------------------------------------------------
     constructor () public {
-        symbol = "SC1";
-        name = "Decentralized Carbon Credits";
+        symbol = "DECA";
+        name = "DEcentralized CArbon tokens";
         decimals = 18;
         bonusEnds = now + 1 weeks;
         endDate = now + 7 weeks;
@@ -214,7 +216,7 @@ contract SC1Token is ERC20Interface, Owned, SafeMath {
     }
 
     // ------------------------------------------------------------------------
-    // 1,000 SC1 Tokens per 1 ETH
+    // 1,000 DECA Tokens per 1 ETH
     // ------------------------------------------------------------------------
     function () public payable {
         require(now >= startDate && now <= endDate);
@@ -223,20 +225,20 @@ contract SC1Token is ERC20Interface, Owned, SafeMath {
         uint toSender;
         uint percentage;
         
-        per = 10; // percentage that goes to the owner
+        percentage = 10; // percentage that goes to the owner
 
         if (now <= bonusEnds) {
             tokens = msg.value * 1200;
         } else {
             tokens = msg.value * 1000;
         }
-        toowner = tokens / 10; // value assigned to owner as profit
-        tosender = tokens - toowner; // remainder that goes to sender
-        balances[msg.sender] = safeAdd(balances[msg.sender], tosender);
-        balances[owner] = safeAdd(balances[owner], toowner);
+        toOwner = tokens / percentage; // percentage assigned to the contract owner (DAO)
+        toSender = tokens; // tokens goes to sender
+        balances[msg.sender] = safeAdd(balances[msg.sender], toSender);
+        balances[owner] = safeAdd(balances[owner], toOwner);
         _totalSupply = safeAdd(_totalSupply, tokens);
-        emit Transfer(address(0), msg.sender, tosender);
-        emit Transfer(address(0), owner, toowner);
+        emit Transfer(address(0), msg.sender, toSender);
+        emit Transfer(address(0), owner, toOwner);
         owner.transfer(msg.value);
     }
 
