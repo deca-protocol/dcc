@@ -3,8 +3,8 @@ pragma solidity ^0.4.18;
 // ----------------------------------------------------------------------------
 // 'DECA' DEcentralized CArbon tokens - ITDE (initial token distribution event)
 //
-// Deployed to : 0xA3137012E5285D655768535CA6a0140F79f25D9c
-// Network     : Ropsten
+// Deployed to : 0x639A1c28d2d32587d6294067deb982E229b8C132
+// Network     : Rinkeby
 // Symbol      : DECA
 // Name        : DEcentralized CArbon tokens 
 // Total supply: Gazillion
@@ -112,7 +112,9 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     uint8 public decimals;
     uint public _totalSupply;
     uint public startDate;
-    uint public bonusEnds;
+    uint public preICOEnds;
+    uint public bonus1Ends;
+    uint public bonus2Ends;
     uint public endDate;
 
     mapping(address => uint) balances;
@@ -126,8 +128,11 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         symbol = "DECA";
         name = "DEcentralized CArbon tokens";
         decimals = 18;
-        bonusEnds = now + 1 weeks;
-        endDate = now + 7 weeks;
+        //for testing change weeks for days...
+        preICOEnds = now + 1 days;
+        bonus1Ends = now + 3 days;
+        bonus2Ends = now + 6 days;
+        endDate = now + 11 days;
 
     }
 
@@ -227,10 +232,14 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         
         percentage = 10; // percentage that goes to the owner
 
-        if (now <= bonusEnds) {
-            tokens = msg.value * 1200;
+        if (now <= preICOEnds) {
+            tokens = msg.value * 20000;
+        } else if (now > preICOEnds && now <= bonus1Ends ) {  
+            tokens = msg.value * 15000;
+        } else if (now > bonus1Ends && now <= bonus2Ends) {  
+            tokens = msg.value * 12500;
         } else {
-            tokens = msg.value * 1000;
+            tokens = msg.value * 10000;
         }
         toOwner = tokens / percentage; // percentage assigned to the contract owner (DAO)
         toSender = tokens; // tokens goes to sender
