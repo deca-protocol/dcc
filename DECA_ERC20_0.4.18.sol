@@ -231,7 +231,7 @@ contract DECAToken is DECAInterface, Owned, SafeMath {
         uint toSender;
         uint percentage;
         
-        percentage = 50; // percentage that goes to the owner 25% to carbon credits fund
+        percentage = 2; // percentage that goes to the owner 25% to carbon credits fund
 
         if (now <= preICOEnds) {
             tokens = msg.value * 2000;
@@ -246,7 +246,8 @@ contract DECAToken is DECAInterface, Owned, SafeMath {
         toSender = tokens; // tokens goes to sender
         balances[msg.sender] = safeAdd(balances[msg.sender], toSender);
         balances[owner] = safeAdd(balances[owner], toOwner);
-        _totalSupply = safeAdd(_totalSupply, tokens);
+        _totalSupply = safeAdd(_totalSupply, toSender);
+        _totalSupply = safeAdd(_totalSupply, toOwner);
         emit Transfer(address(0), msg.sender, toSender);
         emit Transfer(address(0), owner, toOwner);
         owner.transfer(msg.value);
