@@ -1,10 +1,10 @@
 pragma solidity ^0.4.18;
 
 // ----------------------------------------------------------------------------
-// 'DECA' DEcentralized CArbon tokens - ITDE (initial token distribution event)
+// 'DECA' Decentralized Carbon tokens - ITDE (initial token distribution event)
 //
-// Deployed to : 0x4fBE079198ce239fB02E967578aACB28C0CE31ef 
-// Network     : Ropsten
+// Deployed to : 0xE8A1CDC77f686A78C8d7b62CE7131e692eAf3295 
+// Network     : Rinkeby
 // Symbol      : DECA
 // Name        : Decentralized Carbon tokens 
 // Total supply: Gazillion
@@ -13,7 +13,7 @@ pragma solidity ^0.4.18;
 // Enjoy.
 //
 // (c) by Moritz Neto & Daniel Bar with BokkyPooBah / Bok Consulting Pty Ltd Au 2017. The MIT Licence.
-// fork and modifications to fix DECA's ICO needs by p1r0 <p1r0@neetsec.com> and kaicudon <kaicudon@neetsec.com>
+// fork and modifications to fix DECA's ITDE needs by p1r0 <p1r0@neetsec.com> and kaicudon <kaicudon@neetsec.com>
 // ----------------------------------------------------------------------------
 
 
