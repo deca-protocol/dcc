@@ -1,10 +1,10 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.26;
 
 // ----------------------------------------------------------------------------
-// 'DECA' Decentralized Carbon tokens - ITDE (initial token distribution event)
+// 'DECA' DEcentralized CArbon tokens - ITDE (initial token distribution event)
 //
-// Deployed to : 0xE8A1CDC77f686A78C8d7b62CE7131e692eAf3295 
-// Network     : Rinkeby
+// Deployed to : 0xD9497a4ee4D9E6E73EC1126D2f7827DEA8A51154
+// Network     : Ropsten
 // Symbol      : DECA
 // Name        : Decentralized Carbon tokens 
 // Total supply: Gazillion
@@ -13,7 +13,7 @@ pragma solidity ^0.4.18;
 // Enjoy.
 //
 // (c) by Moritz Neto & Daniel Bar with BokkyPooBah / Bok Consulting Pty Ltd Au 2017. The MIT Licence.
-// fork and modifications to fix DECA's ITDE needs by p1r0 <p1r0@neetsec.com> and kaicudon <kaicudon@neetsec.com>
+// fork and modifications to fix DECA's ICO needs by p1r0 <p1r0@neetsec.com> and kaicudon <kaicudon@neetsec.com>
 // ----------------------------------------------------------------------------
 
 
@@ -41,10 +41,10 @@ contract SafeMath {
 
 
 // ----------------------------------------------------------------------------
-// DECA Token Standard #20 Interface
+// ERC Token Standard #20 Interface
 // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
 // ----------------------------------------------------------------------------
-contract DECAInterface {
+contract ERC20Interface {
     function totalSupply() public constant returns (uint);
     function balanceOf(address tokenOwner) public constant returns (uint balance);
     function allowance(address tokenOwner, address spender) public constant returns (uint remaining);
@@ -73,9 +73,7 @@ contract ApproveAndCallFallBack {
 contract Owned {
     address public owner;
     address public newOwner;
-    //this is the ipfs orbit database address as Half1+Half2 strings
     string public _CCDBAddress;
-    //uint public _CarbonCreditsDBAddress;
 
     event OwnershipTransferred(address indexed _from, address indexed _to);
 
@@ -107,7 +105,7 @@ contract Owned {
 // ERC20 Token, with the addition of symbol, name and decimals and assisted
 // token transfers
 // ----------------------------------------------------------------------------
-contract DECAToken is DECAInterface, Owned, SafeMath {
+contract DECAToken is ERC20Interface, Owned, SafeMath {
     string public symbol;
     string public  name;
     uint8 public decimals;
@@ -127,7 +125,7 @@ contract DECAToken is DECAInterface, Owned, SafeMath {
     // ------------------------------------------------------------------------
     constructor () public {
         symbol = "DECA";
-        name = "Decentralized Carbon tokens";
+        name = "DEcentralized CArbon tokens";
         decimals = 18;
         //for testing change weeks for days...
         preICOEnds = now + 1 days;
@@ -231,7 +229,7 @@ contract DECAToken is DECAInterface, Owned, SafeMath {
         uint toSender;
         uint percentage;
         
-        percentage = 2; // percentage that goes to the owner 25% to carbon credits fund
+        percentage = 2; // percentage that goes to the owner
 
         if (now <= preICOEnds) {
             tokens = msg.value * 2000;
@@ -242,12 +240,11 @@ contract DECAToken is DECAInterface, Owned, SafeMath {
         } else {
             tokens = msg.value * 1000;
         }
-        toOwner = tokens / percentage; // percentage assigned to the contract owner (DAO)
+        toOwner = safeDiv(tokens, percentage); // percentage assigned to the contract owner (DAO)
         toSender = tokens; // tokens goes to sender
         balances[msg.sender] = safeAdd(balances[msg.sender], toSender);
         balances[owner] = safeAdd(balances[owner], toOwner);
-        _totalSupply = safeAdd(_totalSupply, toSender);
-        _totalSupply = safeAdd(_totalSupply, toOwner);
+        _totalSupply = safeAdd(_totalSupply, safeAdd(tokens,safeDiv(tokens, percentage)));
         emit Transfer(address(0), msg.sender, toSender);
         emit Transfer(address(0), owner, toOwner);
         owner.transfer(msg.value);
@@ -258,7 +255,7 @@ contract DECAToken is DECAInterface, Owned, SafeMath {
     // ------------------------------------------------------------------------
     // Owner can transfer out any accidentally sent ERC20 tokens
     // ------------------------------------------------------------------------
-    function transferAnyDECAToken(address tokenAddress, uint tokens) public onlyOwner returns (bool success) {
-        return DECAInterface(tokenAddress).transfer(owner, tokens);
+    function transferAnyERC20Token(address tokenAddress, uint tokens) public onlyOwner returns (bool success) {
+        return ERC20Interface(tokenAddress).transfer(owner, tokens);
     }
 }
