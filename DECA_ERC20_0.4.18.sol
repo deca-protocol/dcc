@@ -128,10 +128,10 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         name = "DEcentralized CArbon tokens";
         decimals = 18;
         //for testing change weeks for days...
-        preICOEnds = now + 1 days;
-        bonus1Ends = now + 3 days;
-        bonus2Ends = now + 6 days;
-        endDate = now + 11 days;
+        preICOEnds = now + 1 weeks;
+        bonus1Ends = now + 3 weeks;
+        bonus2Ends = now + 6 weeks;
+        endDate = now + 11 weeks;
 
     }
 
