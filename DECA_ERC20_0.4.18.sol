@@ -1,12 +1,12 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.26;
 
 // ----------------------------------------------------------------------------
 // 'DECA' DEcentralized CArbon tokens - ITDE (initial token distribution event)
 //
-// Deployed to : 0x639A1c28d2d32587d6294067deb982E229b8C132
-// Network     : Rinkeby
+// Deployed to : 0xD9497a4ee4D9E6E73EC1126D2f7827DEA8A51154
+// Network     : Ropsten
 // Symbol      : DECA
-// Name        : DEcentralized CArbon tokens 
+// Name        : Decentralized Carbon tokens 
 // Total supply: Gazillion
 // Decimals    : 18
 //
@@ -73,7 +73,7 @@ contract ApproveAndCallFallBack {
 contract Owned {
     address public owner;
     address public newOwner;
-    uint public _totalCarbonCredits;
+    string public _CCDBAddress;
 
     event OwnershipTransferred(address indexed _from, address indexed _to);
 
@@ -86,9 +86,8 @@ contract Owned {
         _;
     }
 
-    function updateCC(uint newCC) public onlyOwner {
-       _totalCarbonCredits = newCC;
-       // _totalCarbonCredits = safeAdd(_totalCarbonCredits, newCC);
+    function updateCCDBAddress(string CCDBAddress) public onlyOwner {
+       _CCDBAddress = CCDBAddress;
     }
     function transferOwnership(address _newOwner) public onlyOwner {
         newOwner = _newOwner;
@@ -230,22 +229,22 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         uint toSender;
         uint percentage;
         
-        percentage = 10; // percentage that goes to the owner
+        percentage = 2; // percentage that goes to the owner
 
         if (now <= preICOEnds) {
-            tokens = msg.value * 20000;
+            tokens = msg.value * 2000;
         } else if (now > preICOEnds && now <= bonus1Ends ) {  
-            tokens = msg.value * 15000;
+            tokens = msg.value * 1500;
         } else if (now > bonus1Ends && now <= bonus2Ends) {  
-            tokens = msg.value * 12500;
+            tokens = msg.value * 1250;
         } else {
-            tokens = msg.value * 10000;
+            tokens = msg.value * 1000;
         }
-        toOwner = tokens / percentage; // percentage assigned to the contract owner (DAO)
+        toOwner = safeDiv(tokens, percentage); // percentage assigned to the contract owner (DAO)
         toSender = tokens; // tokens goes to sender
         balances[msg.sender] = safeAdd(balances[msg.sender], toSender);
         balances[owner] = safeAdd(balances[owner], toOwner);
-        _totalSupply = safeAdd(_totalSupply, tokens);
+        _totalSupply = safeAdd(_totalSupply, safeAdd(tokens,safeDiv(tokens, percentage)));
         emit Transfer(address(0), msg.sender, toSender);
         emit Transfer(address(0), owner, toOwner);
         owner.transfer(msg.value);
