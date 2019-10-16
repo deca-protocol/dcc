@@ -1,4 +1,4 @@
-pragma solidity ^0.4.26;
+pragma solidity 0.4.26;
 
 // ----------------------------------------------------------------------------
 // 'DECA' DEcentralized CArbon tokens - ITDE (initial token distribution event)
@@ -15,7 +15,6 @@ pragma solidity ^0.4.26;
 // (c) by Moritz Neto & Daniel Bar with BokkyPooBah / Bok Consulting Pty Ltd Au 2017. The MIT Licence.
 // fork and modifications to fix DECA's ICO needs by p1r0 <p1r0@neetsec.com> and kaicudon <kaicudon@neetsec.com>
 // ----------------------------------------------------------------------------
-
 
 // ----------------------------------------------------------------------------
 // Safe maths
@@ -39,7 +38,6 @@ contract SafeMath {
     }
 }
 
-
 // ----------------------------------------------------------------------------
 // ERC Token Standard #20 Interface
 // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
@@ -56,7 +54,6 @@ contract ERC20Interface {
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
 }
 
-
 // ----------------------------------------------------------------------------
 // Contract function to receive approval and execute function in one call
 //
@@ -65,7 +62,6 @@ contract ERC20Interface {
 contract ApproveAndCallFallBack {
     function receiveApproval(address from, uint256 tokens, address token, bytes data) public;
 }
-
 
 // ----------------------------------------------------------------------------
 // Owned contract
@@ -89,9 +85,11 @@ contract Owned {
     function updateCCDBAddress(string CCDBAddress) public onlyOwner {
        _CCDBAddress = CCDBAddress;
     }
+
     function transferOwnership(address _newOwner) public onlyOwner {
         newOwner = _newOwner;
     }
+
     function acceptOwnership() public {
         require(msg.sender == newOwner);
         emit OwnershipTransferred(owner, newOwner);
@@ -100,41 +98,23 @@ contract Owned {
     }
 }
 
-
 // ----------------------------------------------------------------------------
 // ERC20 Token, with the addition of symbol, name and decimals and assisted
 // token transfers
 // ----------------------------------------------------------------------------
 contract DECAToken is ERC20Interface, Owned, SafeMath {
-    string public symbol;
-    string public  name;
-    uint8 public decimals;
+    string public symbol = "DECA";
+    string public name = "DEcentralized CArbon tokens";
+    uint8 public decimals = 18;
     uint public _totalSupply;
-    uint public startDate;
-    uint public preICOEnds;
-    uint public bonus1Ends;
-    uint public bonus2Ends;
-    uint public endDate;
+    //for testing change weeks for hours...
+    uint public preICOEnds = now + 1 hours;
+    uint public bonus1Ends = now + 3 hours;
+    uint public bonus2Ends = now + 6 hours;
+    uint public endDate = now + 11 hours;
 
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
-
-
-    // ------------------------------------------------------------------------
-    // Constructor
-    // ------------------------------------------------------------------------
-    constructor () public {
-        symbol = "DECA";
-        name = "DEcentralized CArbon tokens";
-        decimals = 18;
-        //for testing change weeks for days...
-        preICOEnds = now + 1 weeks;
-        bonus1Ends = now + 3 weeks;
-        bonus2Ends = now + 6 weeks;
-        endDate = now + 11 weeks;
-
-    }
-
 
     // ------------------------------------------------------------------------
     // Total supply: Get the total token supply
@@ -151,7 +131,6 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         return balances[tokenOwner];
     }
 
-
     // ------------------------------------------------------------------------
     // Transfer the balance from token owner's account to `to` account
     // - Owner's account must have sufficient balance to transfer
@@ -163,7 +142,6 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         emit Transfer(msg.sender, to, tokens);
         return true;
     }
-
 
     // ------------------------------------------------------------------------
     // Token owner can approve for `spender` to transferFrom(...) `tokens`
@@ -178,7 +156,6 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         emit Approval(msg.sender, spender, tokens);
         return true;
     }
-
 
     // ------------------------------------------------------------------------
     // Transfer `tokens` from the `from` account to the `to` account
@@ -197,7 +174,6 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         return true;
     }
 
-
     // ------------------------------------------------------------------------
     // Returns the amount of tokens approved by the owner that can be
     // transferred to the spender's account
@@ -205,7 +181,6 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     function allowance(address tokenOwner, address spender) public constant returns (uint remaining) {
         return allowed[tokenOwner][spender];
     }
-
 
     // ------------------------------------------------------------------------
     // Token owner can approve for `spender` to transferFrom(...) `tokens`
@@ -223,13 +198,13 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     // 1,000 DECA Tokens per 1 ETH
     // ------------------------------------------------------------------------
     function () public payable {
-        require(now >= startDate && now <= endDate);
+        require(now <= endDate);
         uint tokens;
         uint toOwner;
         uint toSender;
-        uint percentage;
+        uint divBy;
         
-        percentage = 2; // percentage that goes to the owner
+        divBy = 10; // division to get 10%
 
         if (now <= preICOEnds) {
             tokens = msg.value * 2000;
@@ -240,17 +215,21 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         } else {
             tokens = msg.value * 1000;
         }
-        toOwner = safeDiv(tokens, percentage); // percentage assigned to the contract owner (DAO)
+        toOwner = safeDiv(tokens, divBy); // divBy to get the percentage assigned to the contract owner (for exchange to Cabron Credits)
         toSender = tokens; // tokens goes to sender
         balances[msg.sender] = safeAdd(balances[msg.sender], toSender);
         balances[owner] = safeAdd(balances[owner], toOwner);
-        _totalSupply = safeAdd(_totalSupply, safeAdd(tokens,safeDiv(tokens, percentage)));
+        _totalSupply = safeAdd(_totalSupply, safeAdd(toSender,toOwner));
         emit Transfer(address(0), msg.sender, toSender);
         emit Transfer(address(0), owner, toOwner);
-        owner.transfer(msg.value);
     }
 
-
+    //Close down the ICO and Claim the Ether.
+    function getETH() public onlyOwner {
+        require(now >= endDate );
+        // transfer the ETH balance in the contract to the owner
+        owner.transfer(address(this).balance); 
+    }
 
     // ------------------------------------------------------------------------
     // Owner can transfer out any accidentally sent ERC20 tokens
