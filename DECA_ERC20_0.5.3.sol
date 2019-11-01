@@ -106,35 +106,20 @@ contract Owned {
 // token transfers
 // ----------------------------------------------------------------------------
 contract DECAToken is ERC20Interface, Owned, SafeMath {
-    string public symbol;
-    string public  name;
-    uint8 public decimals;
+    string public symbol = "DECA";
+    string public name = "DEcentralized CArbon tokens";
+    uint8 public decimals = 18;
     uint public totalSupply;
-    uint public startDate;
-    uint public preICOEnds;
-    uint public bonus1Ends;
-    uint public bonus2Ends;
-    uint public endDate;
+    //for testing change weeks for hours...
+    uint public preICOEnds = now + 1 hours;
+    uint public bonus1Ends = now + 3 hours;
+    uint public bonus2Ends = now + 6 hours;
+    uint public endDate = now + 11 hours;
 
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
 
-
-    // ------------------------------------------------------------------------
-    // Constructor
-    // ------------------------------------------------------------------------
-    constructor () public {
-        symbol = "DECA";
-        name = "DEcentralized CArbon tokens";
-        decimals = 18;
-        //for testing change weeks for days...
-        preICOEnds = now + 1 days;
-        bonus1Ends = now + 3 days;
-        bonus2Ends = now + 6 days;
-        endDate = now + 11 days;
-
-    }
-
+    //functions that helps against Allowance Double-Spend Exploit
     modifier onlyValidAddress(address addr) {
         require(addr != address(0), "Address cannot be zero");
         _;
@@ -271,31 +256,37 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     // 1,000 DECA Tokens per 1 ETH
     // ------------------------------------------------------------------------
     function () external payable {
-        require(now >= startDate && now <= endDate);
+        require(now <= endDate);
         uint tokens;
         uint toOwner;
         uint toSender;
-        uint percentage;
-        
-        percentage = 2; // percentage that goes to the owner
+        uint divBy;
+        // division to get 20% of the total supply for carbon credits
+        divBy = 4; 
 
         if (now <= preICOEnds) {
-            tokens = msg.value * 2000;
+            tokens = msg.value * 200;
         } else if (now > preICOEnds && now <= bonus1Ends ) {  
-            tokens = msg.value * 1500;
+            tokens = msg.value * 150;
         } else if (now > bonus1Ends && now <= bonus2Ends) {  
-            tokens = msg.value * 1250;
+            tokens = msg.value * 125;
         } else {
-            tokens = msg.value * 1000;
+            tokens = msg.value * 100;
         }
-        toOwner = safeDiv(tokens, percentage); // percentage assigned to the contract owner (DAO)
-        toSender = tokens; // tokens goes to sender
+        toOwner = safeDiv(tokens, divBy); // divBy to get the percentage assigned to the contract owner (for exchange to Cabron Credits)
+        toSender = tokens; //tokens that goes to the sender
         balances[msg.sender] = safeAdd(balances[msg.sender], toSender);
         balances[owner] = safeAdd(balances[owner], toOwner);
-        totalSupply = safeAdd(totalSupply, safeAdd(tokens,safeDiv(tokens, percentage)));
+        totalSupply = safeAdd(totalSupply, safeAdd(toSender,toOwner));
         emit Transfer(address(0), msg.sender, toSender);
         emit Transfer(address(0), owner, toOwner);
-        address(owner).transfer(msg.value);
+    }
+
+    //Close down the ICO and claim the Ether.
+    function getETH() public onlyOwner {
+        require(now >= endDate );
+        // transfer the ETH balance in the contract to the owner
+        owner.transfer(address(this).balance); 
     }
 
     // ------------------------------------------------------------------------
