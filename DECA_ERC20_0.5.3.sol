@@ -106,9 +106,9 @@ contract Owned {
 // token transfers
 // ----------------------------------------------------------------------------
 contract DECAToken is ERC20Interface, Owned, SafeMath {
-    string public symbol = "DECA";
-    string public name = "DEcentralized CArbon tokens";
-    uint8 public decimals = 18;
+    string constant public symbol = "DECA";
+    string constant public name = "DEcentralized CArbon tokens";
+    uint8 constant public decimals = 18;
     uint public totalSupply;
     //for testing change weeks for hours...
     uint public preICOEnds = now + 1 hours;
