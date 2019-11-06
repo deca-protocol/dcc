@@ -3,19 +3,17 @@ pragma solidity 0.5.3;
 // ----------------------------------------------------------------------------
 // 'DECA' DEcentralized CArbon tokens - ITDE (initial token distribution event)
 //
-// Deployed to : 0xD9497a4ee4D9E6E73EC1126D2f7827DEA8A51154
+// Deployed to : ------
 // Network     : Ropsten
 // Symbol      : DECA
 // Name        : Decentralized Carbon tokens 
 // Total supply: Gazillion
 // Decimals    : 18
 //
-// Enjoy.
-//
 // (c) by Moritz Neto & Daniel Bar with BokkyPooBah / Bok Consulting Pty Ltd Au 2017. The MIT Licence.
-// fork and modifications to fix DECA's ICO needs by p1r0 <p1r0@neetsec.com> and kaicudon <kaicudon@neetsec.com>
+// fork and modifications to fix DECA's ICO needs by p1r0 <p1r0@neetsec.com>,
+// Oscar <oscar@neetsec.com> and kaicudon <kaicudon@neetsec.com>
 // ----------------------------------------------------------------------------
-
 
 // ----------------------------------------------------------------------------
 // Safe maths
@@ -39,7 +37,6 @@ contract SafeMath {
     }
 }
 
-
 // ----------------------------------------------------------------------------
 // ERC Token Standard #20 Interface
 // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
@@ -50,22 +47,21 @@ contract ERC20Interface {
     function allowance(address tokenOwner, address spender) public view returns (uint remaining);
     function transfer(address to, uint tokens) public returns (bool success);
     function approve(address spender, uint tokens) public returns (bool success);
+    function increaseApproval (address spender, uint tokens) public returns (bool success); 
+    function decreaseApproval (address spender, uint tokens) public returns (bool success);
     function transferFrom(address from, address to, uint tokens) public returns (bool success);
-
+        
     event Transfer(address indexed from, address indexed to, uint tokens);
     event Approval(address indexed tokenOwner, address indexed spender, uint tokens);
 }
 
-
 // ----------------------------------------------------------------------------
 // Contract function to receive approval and execute function in one call
-//
 // Borrowed from MiniMeToken
 // ----------------------------------------------------------------------------
 contract ApproveAndCallFallBack {
     function receiveApproval(address from, uint256 tokens, address token, bytes memory data) public;
 }
-
 
 // ----------------------------------------------------------------------------
 // Owned contract
@@ -85,7 +81,10 @@ contract Owned {
         require(msg.sender == owner);
         _;
     }
-
+    // ----------------------------------------------------------------------------
+    //Function that updates the orbitDB address at IPFS
+    //This database will store the carbon credits gotten by the 20% DECAS that the contract owner recives
+    // ----------------------------------------------------------------------------
     function updateCCDBAddress(string memory _CCDBAddress) public onlyOwner {
        CCDBAddress = _CCDBAddress;
     }
@@ -119,26 +118,9 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
 
-    //functions that helps against Allowance Double-Spend Exploit
-    modifier onlyValidAddress(address addr) {
-        require(addr != address(0), "Address cannot be zero");
-        _;
-    }
-
-    modifier onlySufficientBalance(address from, uint256 tokens) {
-        require(tokens <= balances[from], "Insufficient balance");
-        _;
-    }
-    
-    modifier onlySufficientAllowance(address owner, address spender, uint256 value) {
-        require(value <= allowed[owner][spender], "Insufficient allowance");
-        _;
-    }
-
     // ------------------------------------------------------------------------
     // Total supply: Get the total token supply
     // ------------------------------------------------------------------------ 
-
     function getTotalSupply() public view returns (uint) {
         return totalSupply  - balances[address(0)];
     }
@@ -155,7 +137,7 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     // - Owner's account must have sufficient balance to transfer
     // - 0 value transfers are allowed
     // ------------------------------------------------------------------------
-    function transfer(address to, uint tokens) public onlySufficientBalance(msg.sender, tokens) returns (bool success) {
+    function transfer(address to, uint tokens) public returns (bool success) {
         balances[msg.sender] = safeSub(balances[msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
         emit Transfer(msg.sender, to, tokens);
@@ -165,48 +147,37 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     // ------------------------------------------------------------------------
     // Token owner can approve for `spender` to transferFrom(...) `tokens`
     // from the token owner's account
-    //
-    // https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20-token-standard.md
-    // recommends that there are no checks for the approval double-spend attack
-    // as this should be implemented in user interfaces
     // ------------------------------------------------------------------------
     function approve(address spender, uint tokens) public returns (bool success) {
-        allowed[msg.sender][spender] = tokens;
-        emit Approval(msg.sender, spender, tokens);
-        return true;
+        // approve should only be called when setting an initial allowance,
+        // or when resetting it to zero. To increase and decrease it, use
+        // 'increaseApproval' and 'decreaseApproval'
+        if (allowed[msg.sender][spender] == 0 || tokens == 0){
+            emit Approval(msg.sender, spender, tokens);
+            return true;
+        }
+        return false;
     }
 
     // ------------------------------------------------------------------------
-    // Increases the amount of tokens that an owner allowed to a spender.
-    //
-    // approve should be called when _allowance[spender] == 0. To increment
-    // allowed value is better to use this function to avoid 2 calls (and wait until
+    // approve should be called when allowed[spender] == 0. To increment
+    // allowed value is better to use this function to avoid 2 calls (and wait until 
     // the first transaction is mined)
-    // 'spender' The address which will spend the funds.
-    // 'addedValue' The amount of tokens to increase the allowance by.
     // ------------------------------------------------------------------------
-    function increaseAllowance(address spender, uint256 addedValue) public 
-    onlyValidAddress(spender) 
-    returns (bool){
-        allowed[msg.sender][spender] = safeAdd(allowed[msg.sender][spender], addedValue);
+    function increaseApproval (address spender, uint tokens) public returns (bool success){
+        allowed[msg.sender][spender] = safeAdd(allowed[msg.sender][spender], tokens);
         emit Approval(msg.sender, spender, allowed[msg.sender][spender]);
         return true;
     }
 
-    // ------------------------------------------------------------------------
-    // Decreases the amount of tokens that an owner allowed to a spender.
-    //
-    // approve should be called when _allowance[spender] == 0. To decrement
-    // allowed value is better to use this function to avoid 2 calls (and wait until
-    // the first transaction is mined)
-    // 'spender' The address which will spend the funds.
-    // 'param' subtractedValue The amount of tokens to decrease the allowance by.
-    // ------------------------------------------------------------------------
-    function decreaseAllowance(address spender, uint256 subtractedValue) public 
-    onlyValidAddress(spender) 
-    onlySufficientAllowance(msg.sender, spender, subtractedValue)
-    returns (bool){
-        allowed[msg.sender][spender] = safeSub(allowed[msg.sender][spender], subtractedValue);
+    function decreaseApproval (address spender, uint tokens) public returns (bool success) {
+        uint oldValue = allowed[msg.sender][spender];
+        if (tokens > oldValue) {
+            allowed[msg.sender][spender] = 0;
+        } 
+        else{
+            allowed[msg.sender][spender] = safeSub(oldValue, tokens);
+        }
         emit Approval(msg.sender, spender, allowed[msg.sender][spender]);
         return true;
     }
@@ -220,11 +191,7 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     // - Spender must have sufficient allowance to transfer
     // - 0 value transfers are allowed
     // ------------------------------------------------------------------------
-    function transferFrom(address from, address to, uint tokens) public 
-    onlyValidAddress(to)
-    onlySufficientBalance(from, tokens)
-    onlySufficientAllowance(from, msg.sender, tokens)
-    returns (bool success) {
+    function transferFrom(address from, address to, uint tokens) public returns (bool success) {
         balances[from] = safeSub(balances[from], tokens);
         allowed[from][msg.sender] = safeSub(allowed[from][msg.sender], tokens);
         balances[to] = safeAdd(balances[to], tokens);
@@ -253,7 +220,7 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     }
 
     // ------------------------------------------------------------------------
-    // 1,000 DECA Tokens per 1 ETH
+    // 100 DECA Tokens per 1 ETH
     // ------------------------------------------------------------------------
     function () external payable {
         require(now <= endDate);
@@ -261,8 +228,14 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         uint toOwner;
         uint toSender;
         uint divBy;
-        // division to get 20% of the total supply for carbon credits
-        divBy = 4; 
+        // ------------------------------------------------------------------------
+        // We want to have 20% of the DECA tokens market cap in order to exchange
+        // them for carbon credits and have a better decentralization
+        // NOTE: The Contract Owner must publish this usage in the orbitdb database
+        // in order to prove that it's not holding using them with any other propose
+        // (this can be also verified by the blockchain).
+        // ------------------------------------------------------------------------ 
+        divBy = 4; // 25% extra printed to be 20% of the marketcap, please see README.md
 
         if (now <= preICOEnds) {
             tokens = msg.value * 200;
@@ -273,7 +246,8 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
         } else {
             tokens = msg.value * 100;
         }
-        toOwner = safeDiv(tokens, divBy); // divBy to get the percentage assigned to the contract owner (for exchange to Cabron Credits)
+
+        toOwner = safeDiv(tokens, divBy); //created 25% extra to the contract owner
         toSender = tokens; //tokens that goes to the sender
         balances[msg.sender] = safeAdd(balances[msg.sender], toSender);
         balances[owner] = safeAdd(balances[owner], toOwner);
