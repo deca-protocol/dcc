@@ -110,10 +110,10 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     uint8 constant public decimals = 18;
     uint public totalSupply;
     //for testing change weeks for hours...
-    uint public preICOEnds = now + 1 hours;
-    uint public bonus1Ends = now + 3 hours;
-    uint public bonus2Ends = now + 6 hours;
-    uint public endDate = now + 11 hours;
+    uint public preICOEnds = now + 1 weeks;
+    uint public bonus1Ends = now + 3 weeks;
+    uint public bonus2Ends = now + 6 weeks;
+    uint public endDate = now + 11 weeks;
 
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
@@ -149,14 +149,10 @@ contract DECAToken is ERC20Interface, Owned, SafeMath {
     // from the token owner's account
     // ------------------------------------------------------------------------
     function approve(address spender, uint tokens) public returns (bool success) {
-        // approve should only be called when setting an initial allowance,
-        // or when resetting it to zero. To increase and decrease it, use
-        // 'increaseApproval' and 'decreaseApproval'
-        if (allowed[msg.sender][spender] == 0 || tokens == 0){
-            emit Approval(msg.sender, spender, tokens);
-            return true;
-        }
-        return false;
+        // approves to set an allowance
+	allowed[msg.sender][spender] = tokens;
+	emit Approval(msg.sender, spender, tokens);
+	return true;
     }
 
     // ------------------------------------------------------------------------
