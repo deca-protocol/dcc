@@ -1,6 +1,7 @@
 pragma solidity 0.5.12;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 // ----------------------------------------------------------------------------
 // 'DECA' DEcentralized CArbon tokens - ITDE (initial token distribution event)
@@ -88,7 +89,7 @@ contract Ownable is Context {
 // ERC20 Token, with the addition of symbol, name and decimals and assisted
 // token transfers
 // ----------------------------------------------------------------------------
-contract DECAToken is ERC20, Ownable {
+contract DECA is ERC20, Ownable {
     using SafeMath for uint256;
     string constant public symbol = "DECA";
     string constant public name = "DEcentralized CArbon tokens";
@@ -98,25 +99,39 @@ contract DECAToken is ERC20, Ownable {
     uint public bonus1Ends = now + 3 weeks;
     uint public bonus2Ends = now + 6 weeks;
     uint public endDate = now + 11 weeks;
+    bool private _pause = false;
+
+    modifier notPaused() {
+        require(!_pause, "crowdsale on pause");
+        _;
+    }
+    function getPause() view public returns (bool){
+        return _pause;
+    }
+
+    function setPause(bool p) external onlyOwner {
+        _pause = p;
+    }
     // ------------------------------------------------------------------------
     // 100 DECA Tokens per 1 ETH
     // ------------------------------------------------------------------------
-    function() external payable {
+    function() notPaused external payable {
         require(now <= endDate);
         uint tokens;
         uint toOwner;
         uint toSender;
         uint divBy;
 
-        divBy = 40; //2.5% extra printed to be 2% of the marketcap, please see README.md
+        divBy = 40;
+        //2.5% extra printed to be 2% of the marketcap, please see README.md
         if (now <= preICOEnds) {
-            tokens = msg.value * 200;
+            tokens = msg.value * 300;
         } else if (now > preICOEnds && now <= bonus1Ends) {
-            tokens = msg.value * 150;
+            tokens = msg.value * 275;
         } else if (now > bonus1Ends && now <= bonus2Ends) {
-            tokens = msg.value * 125;
+            tokens = msg.value * 250;
         } else {
-            tokens = msg.value * 100;
+            tokens = msg.value * 225;
         }
 
         toOwner = tokens.div(divBy);
