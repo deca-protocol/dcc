@@ -201,44 +201,39 @@ contract('DECA', function (accs) {
         })
 
     })
-    // SOMEHOW THIS FUNCTIONS TEST WORKED IN ROPSTEN
-//    describe('transferAnyERC20Token', async function () {
-//        it('check transfer from external', async function () {
-//            this.deca2 = await DECA.new({
-//                from: this.creator.address,
-//                gas: 6712390
-//            })
-//
-//            var sender = await getHighBalance();
-//            await web3.eth.sendTransaction({
-//                from: sender.address,
-//                to: this.deca2.address,
-//                value: 1,
-//                gas: 6712390
-//            });
-//            let deca2Balance = await this.deca2.balanceOf.call(sender.address)
-//            console.log('DECA2 BALANCE : ', deca2Balance.toString(10))
-//
-//            assert.equal(deca2Balance.toString(10), '300', " sender should have balance")
-//
-//            let wasErr = false;
-//            try {
-//                let ok = await this.deca.transferAnyERC20Token(this.deca2.address, 1, {
-//                    from: this.creator.address,
-//                    gas: 6712390
-//                })
-//                assert.equal(true, ok, "transferAnyERC20Token should return positive result")
-//            } catch (err) {
-//                console.dir(err)
-//                wasErr = true;
-//            }
-//            deca2Balance = await this.deca2.balanceOf.call(sender.address)
-//
-//            assert.equal(deca2Balance.toString(10), '0', " sender should have 0 on balance")
-//        })
-//    })
+    describe('transferAnyERC20Token', async function () {
+        it('check transfer from external', async function () {
+
+            var sender = await getHighBalance();
+            await web3.eth.sendTransaction({
+                from: sender.address,
+                to: this.deca.address,
+                value: 1,
+                gas: 6712390
+            });
+            let decaBalance = await this.deca.balanceOf.call(this.deca.address)
+            await this.deca.transfer(this.deca.address, 10, {from: sender.address, gas: 6712390})
+            decaBalance = await this.deca.balanceOf.call(this.deca.address)
+            assert.equal(decaBalance.toString(10), '10', " contract should have balance")
+
+            let wasErr = false;
+            try {
+                let ok = await this.deca.transferAnyERC20Token(this.deca.address, 10, {
+                    from: this.creator.address,
+                    gas: 6712390
+                })
+                assert.equal(true, ok, "transferAnyERC20Token should return positive result")
+            } catch (err) {
+                console.dir(err)
+                wasErr = true;
+            }
+
+            assert.equal(true, wasErr, "transferAnyERC20Token should proces without error")
+        })
+    })
+// SOMEHOW THIS FUNCTIONS TEST WORKED IN ROPSTEN
 //    describe('check payout', async function () {
-//        it('check getETH', async function () {
+//        it.only('check getETH', async function () {
 //            let decaBalance = await web3.eth.getBalance(this.deca.address);
 //            assert.equal(decaBalance.toString(10), '0', " wrong contract balance")
 //            var sender = await getHighBalance();
@@ -267,5 +262,4 @@ contract('DECA', function (accs) {
 //
 //        })
 //    })
-
 })
