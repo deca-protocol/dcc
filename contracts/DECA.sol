@@ -22,6 +22,8 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 contract Ownable is Context {
     address payable private _owner;
     using SafeMath for uint256;
+    string public _CCDBAddress;
+
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -82,6 +84,14 @@ contract Ownable is Context {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;
+    }
+
+    /**
+    *Function that updates the official orbitDB address for carbon credits.
+    *Can Only be updated by the current owner
+    */
+    function updateCCDBAddress(string memory newCCDBAddress) public onlyOwner {
+       _CCDBAddress = newCCDBAddress;
     }
 }
 
