@@ -1,6 +1,6 @@
 Decentralized Carbon Credits ERC20
 ===
-![build](https://img.shields.io/gitlab/pipeline/deca-currency/dcc)
+![build](https://gitlab.com/deca-currency/dcc/badges/develop/pipeline.svg)
 [![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/deca-currency/community) 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
