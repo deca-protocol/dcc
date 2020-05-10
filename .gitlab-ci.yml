@@ -1,0 +1,26 @@
+image: node:12.16.3
+
+before_script:
+ - npm install -g ganache-cli
+ - npm install -g truffle@5.1.3
+ - npm i @openzeppelin/contracts@2.4.0
+
+stages:
+  - build
+  - test
+  
+
+build: 
+  stage: build
+  script:
+     - truffle compile
+  tags:
+    - docker
+    
+test:
+   stage: test
+   script:
+     - ./run-rpc.sh &
+     - truffle test
+   tags:
+     - docker
