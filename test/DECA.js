@@ -84,63 +84,64 @@ contract('DECA', function (accs) {
         })
 
     }),
-        describe('check pause', function () {
-            it('should get/set pause', async function () {
-                let p = await this.deca.getPause.call();
-                assert.equal(false, p, "pause should be disabled")
-                await this.deca.setPause(true, {from: this.creator.address, gas: 6712390})
-                p = await this.deca.getPause.call();
-                assert.equal(true, p, "pause should be enabled")
-            })
-            it('should fail on pay', async function () {
-                await this.deca.setPause(true, {from: this.creator.address, gas: 6712390})
-                let wasErr = false;
-                try {
-                    let rs = await web3.eth.sendTransaction({
-                        from: this.creator.address,
-                        to: this.deca.address,
-                        value: 225,
-                        gas: 6712390
-                    });
-                } catch (err) {
-                    wasErr = true;
-                }
-                await this.deca.setPause(false, {from: this.creator.address, gas: 6712390})
 
-                wasErr = false;
-                try {
-                    let rs = await web3.eth.sendTransaction({
-                        from: this.creator.address,
-                        to: this.deca.address,
-                        value: 225,
-                        gas: 6712390
-                    });
-                } catch (err) {
-                    wasErr = true;
-                }
-                assert.equal(false, wasErr, "pause should work")
-            })
-            it('check intruder pause', async function () {
-                var sender = await getHighBalance();
-                await increaseTime(duration.days(1))
-                await web3.eth.sendTransaction({
-                    from: sender.address,
+    describe('check pause', function () {
+        it('should get/set pause', async function () {
+            let p = await this.deca.getPause.call();
+            assert.equal(false, p, "pause should be disabled")
+            await this.deca.setPause(true, {from: this.creator.address, gas: 6712390})
+            p = await this.deca.getPause.call();
+            assert.equal(true, p, "pause should be enabled")
+        })
+        it('should fail on pay', async function () {
+            await this.deca.setPause(true, {from: this.creator.address, gas: 6712390})
+            let wasErr = false;
+            try {
+                let rs = await web3.eth.sendTransaction({
+                    from: this.creator.address,
                     to: this.deca.address,
-                    value: 1,
+                    value: 225,
                     gas: 6712390
                 });
-                let wasErr = false;
-                try {
-                    await this.deca.setPause(true, {from: sender.address, gas: 6712390})
-                } catch (err) {
-                    wasErr = true;
-                }
-                assert.equal(true, wasErr, "only owner could pause")
-                let own = await this.deca.owner();
-                assert.equal(this.creator.address, own, "owner does not match")
-            })
+            } catch (err) {
+                wasErr = true;
+            }
+            await this.deca.setPause(false, {from: this.creator.address, gas: 6712390})
 
+            wasErr = false;
+            try {
+                let rs = await web3.eth.sendTransaction({
+                    from: this.creator.address,
+                    to: this.deca.address,
+                    value: 225,
+                    gas: 6712390
+                });
+            } catch (err) {
+                wasErr = true;
+            }
+            assert.equal(false, wasErr, "pause should work")
         })
+        it('check intruder pause', async function () {
+            var sender = await getHighBalance();
+            await increaseTime(duration.days(1))
+            await web3.eth.sendTransaction({
+                from: sender.address,
+                to: this.deca.address,
+                value: 1,
+                gas: 6712390
+            });
+            let wasErr = false;
+            try {
+                await this.deca.setPause(true, {from: sender.address, gas: 6712390})
+            } catch (err) {
+                wasErr = true;
+            }
+            assert.equal(true, wasErr, "only owner could pause")
+            let own = await this.deca.owner();
+            assert.equal(this.creator.address, own, "owner does not match")
+        })
+
+    })
 
     describe('check crowdsale dates', function () {
         it('check preICOEnds', async function () {
@@ -199,8 +200,22 @@ contract('DECA', function (accs) {
 
             assert.equal(true, wasErr, "crowdsale should be stopped")
         })
-
+        it('check appendWeeks', async function () {
+            await increaseTime(duration.weeks(10))
+            // get endDate before
+            let endDateBefore = await this.deca.endDate.call();
+            // add one week
+            await this.deca.appendWeeks(1, {
+                from: this.creator.address,
+                gas: 6712390
+            });
+            // get endDate after
+            let endDateAfter = await this.deca.endDate.call();
+            // 1 week = 604800 seconds
+            assert.equal(604800, endDateAfter - endDateBefore, "appendWeeks does not work");
+        })
     })
+    
     describe('transferAnyERC20Token', async function () {
         it('check transfer from external', async function () {
 
