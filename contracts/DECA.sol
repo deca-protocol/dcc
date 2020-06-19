@@ -156,6 +156,8 @@ contract DECA is ERC20, Ownable {
     //Add weeks in case ICO gets not enough funds
     function appendWeeks(uint addWeeks ) public onlyOwner {
         require(now >= bonus2Ends && now < endDate);
+        // Fix Integer Overflow / Underflow
+        require(endDate < (endDate + (addWeeks * 1 weeks)));
         // add weeks to the endDate
         endDate += (addWeeks * 1 weeks);
     }
